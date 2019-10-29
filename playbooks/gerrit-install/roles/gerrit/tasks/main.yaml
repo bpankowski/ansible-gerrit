@@ -63,7 +63,7 @@
 - name:  install_gerrit | Update the listen url
   command: git config --file {{ gerrit_install_dir }}/etc/gerrit.config httpd.listenUrl 'http://localhost:8080'
 
-- name: install_gerrit Fix gerrit files ownership
+- name: install_gerrit | Fix gerrit files ownership
   file:
     path: "{{ gerrit_install_dir }}/"
     owner: gerrit2
