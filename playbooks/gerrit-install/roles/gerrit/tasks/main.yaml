@@ -1,0 +1,75 @@
+---
+- name: install_gerrit | Create gerrit group
+  group:
+    name: gerrit2
+    gid: "{{ gerrit.gid }}"
+
+- name: install_gerrit | Create gerrit user
+  user:
+    name: gerrit2
+    uid: "{{ gerrit.uid }}"
+    group: gerrit2
+    home: "{{ gerrit_install_dir }}"
+    shell: /bin/bash
+    createhome: yes
+
+- name: Fix gerrit home directory ownership
+  file:
+    path: "{{ gerrit_install_dir }}"
+    owner: gerrit2
+    group: gerrit2
+
+- name: install_gerrit | installing pre-reqs
+  apt:
+    name: '{{ item }}'
+    state: present
+  with_items:
+    - openjdk-8-jre-headless
+    - git
+
+- name: install_gerrit | creating gerrit install directory
+  file:
+    path: '{{ gerrit_install_dir }}'
+    state: directory
+    owner: gerrit2
+    group: gerrit2
+    mode: 0755
+
+- name: install_gerrit | downloading gerrit
+  get_url:
+    url: '{{ item.url }}/{{ item.filename }}'
+    dest: '{{ gerrit_install_dir }}/{{ item.filename }}'
+    validate_certs: false
+  with_items: '{{ gerrit_dl_info }}'
+  become_user: gerrit2
+
+- name: install_gerrit | check if exists
+  stat:
+    path: '{{ gerrit_install_dir }}'
+  register: install_dir_stat
+  become_user: gerrit2
+
+- name: install_gerrit | make folder if doesn't exists
+  command: mkdir '{{ gerrit_install_dir }}'
+  when: install_dir_stat.stat.exists == False
+  with_items: install_dir_stat
+  become_user: gerrit2
+
+- name: install_gerrit | Init
+  command: java -jar {{ gerrit_install_dir }}/'gerrit-{{ gerrit_version }}.war' init --batch --dev -d {{ gerrit_install_dir }}/
+  with_items:
+    - gerrit_install_dir
+
+- name:  install_gerrit | Update the listen url
+  command: git config --file {{ gerrit_install_dir }}/etc/gerrit.config httpd.listenUrl 'http://localhost:8080'
+
+- name: install_gerrit Fix gerrit files ownership
+  file:
+    path: "{{ gerrit_install_dir }}/"
+    owner: gerrit2
+    group: gerrit2
+    recurse: yes
+
+- name: install_gerrit |  Restart Service
+  command: '{{ gerrit_install_dir }}/bin/gerrit.sh restart'
+  become_user: gerrit2

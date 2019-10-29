@@ -1,0 +1,6 @@
+---
+- name: Install Gerrit
+  hosts: localhost
+  become: true
+  roles:
+    - role: gerrit

@@ -1,0 +1,11 @@
+gerrit_install_dir: /opt/gerrit3
+gerrit_dl_info:
+  - url: https://gerrit-releases.storage.googleapis.com
+    filename: 'gerrit-{{ gerrit_version }}.war'
+gerrit_version: 3.0.3
+gerrit_homedir: /home/gerrit2
+gerrit_site: /home/gerrit2/review_site
+gerrit_public: 'http://localhost'
+gerrit:
+  uid: 900
+  gid: 900
